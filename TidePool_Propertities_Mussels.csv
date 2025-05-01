@@ -1,0 +1,15 @@
+Pool,Treatment,Max Depth (cm),Perimeter (cm),Volume - pumped (L),Interior surface area (squares),Tide Height (m),SA
+5,CO2 Added + Warmed,17,210,8,19,2.46,0.19
+7,Unmanipulated,19,225,28,45,2.63,0.45
+8,Warmed,10,231,7,23,2.65,0.23
+9,CO2 Added,7,160,3,13.5,2.23,0.135
+10,Unmanipulated,9.5,175,5.5,14,2.3,0.14
+11,CO2 Added + Warmed,12.5,272,14,32,2.48,0.32
+13,Warmed,23.5,268,22,48,2.36,0.48
+15,CO2 Added,11,220,5,11,2.3,0.11
+16,Warmed,19,252,19.5,22,1.99,0.22
+27,CO2 Added,17,264,12.5,28,2.87,0.28
+31,Unmanipulated,12,305,6.5,21,2.86,0.21
+33,Warmed,16,495,25,49,2.94,0.49
+35,CO2 Added,11,350,9,23,3.09,0.23
+36,CO2 Added + Warmed,20,260,19.5,22,3.23,0.22

@@ -223,110 +223,56 @@ dev.off()
 ####################--------------------------------------------------------------
 setwd("/Users/racinerangel/Desktop/Climate Manipulations/Shell Analyses/Shell Thickness")
 ####################--------------------------------------------------------------
-ShellTreatA<-read.csv("avgATreatment.csv") #Only used for plotting
-ShellTreatB<-read.csv("avgBTreatment.csv")
-ShellTreatC<-read.csv("avgCtreatment.csv")
+ShellTreat<-read.csv("Sitka_Mussel_CLShells.csv")
 
-ShellTreatA$Timepoint<-factor(ShellTreatA$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
-ShellTreatB$Timepoint<-factor(ShellTreatB$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
-ShellTreatC$Timepoint<-factor(ShellTreatC$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
-
-ShellTreatA$Treatment<-factor(ShellTreatA$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed")) 
-
-ShellTreatB$Treatment<-factor(ShellTreatB$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added", "Warmed", "CO2 Added + Warmed"))
-
-ShellTreatC$Treatment<-factor(ShellTreatC$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed")) 
+ShellTreat$Timepoint<-factor(ShellTreat$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
+ShellTreat$Treatment<-factor(ShellTreat$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed")) 
 
 ####################--------------------------------------------------------------
-#LIP SHELL THICKNESS
+#SHELL THICKNESS - BOXPLOT
 ####################--------------------------------------------------------------
-#jpeg("lineslipSE.jpg",height=550*4,width=650*4,res=100*4)
+ShellTreat_Long <- ShellTreat %>%
+  pivot_longer(
+    cols = starts_with("Standard"),
+    names_to = "Region",
+    values_to = "Standard"
+  )
 
-Lip<-ggplot(ShellTreatA, aes(x=Timepoint, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(width=0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                     "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) + geom_line(linetype="solid", position=position_dodge(width=0.2))+theme_bw()+
-  theme(plot.margin =  margin(.5, 0, .5, .5, "cm"), legend.position = "none",
+ShellTreat_Long <- ShellTreat_Long %>%
+  mutate(Region = case_when(
+    Region == "StandardA" ~ "Lip",
+    Region == "StandardB" ~ "Middle",
+    Region == "StandardC" ~ "Base",
+    ))
+
+ShellTreat_Long$Region<-factor(ShellTreat_Long$Region, levels = c("Lip", "Middle", "Base")) 
+ShellTreat_Long$Timepoint<-factor(ShellTreat_Long$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
+ShellTreat_Long$Treatment<-factor(ShellTreat_Long$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed")) 
+
+Thickness<-ShellTreat_Long %>%
+  ggplot(aes(x=Month, y=Standard, fill=Treatment, col=Treatment)) + labs(y="Standardized Shell Thickness (mm)") +
+  geom_boxplot(position=position_dodge(1.0), width=0.75)+ ylim(0.0,0.05) + geom_point(position=position_jitterdodge(jitter.width=0.2, dodge.width = 1.0), size=3, pch=21, show.legend = F) +
+  scale_fill_manual(name="Treatment", values=c("white","gray47", "white", "firebrick"), 
+                    labels=c("Unmanipulated",
+                             "CO2 Added" = bquote(CO[2]~"Added"),
+                             "Warmed",
+                             "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) +
+  scale_color_manual(name="Treatment", values=c("gray47", "black", "firebrick", "black"),
+                     labels=c("Unmanipulated",
+                              "CO2 Added" = bquote(CO[2]~"Added"),
+                              "Warmed",
+                              "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
+  theme_bw() +
+  theme(plot.margin =  margin(.5, .5, .5, .5, "cm"),
         axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5)) +
-  labs(x ="", y = "Average Shell Thickness (mm)", title="Lip")+ geom_errorbar(aes(ymin=mean-sd, 
-                                                              ymax=mean+sd), alpha=0.6, width=.5, position=position_dodge(0.2)) + scale_y_continuous(name="Standardized Shell Thickness (mm)", limits=c(0.000, 0.050))+
-  annotate("text", x=c(1,2,3), y=c(0.041, 0.041, 0.041), label=c("", "",""), size=12) + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
+        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16)) + scale_x_discrete(labels=c("0","3","6")) +
+  labs(x ="Time Of Exposure (Months)", y = "Standardized Shell Thickness (mm)") + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70") + facet_grid(~ Region) + theme(strip.text = element_text(size=16)) 
 
-Lip
-
-dev.off()  
-
-
-####################--------------------------------------------------------------
-#MIDDLE SHELL THICKNESS
-####################--------------------------------------------------------------
-#jpeg("linesmidSE.jpg",height=550*4,width=650*4,res=100*4)
-
-Mid<-ggplot(ShellTreatB, aes(x=Timepoint, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                     "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
-  geom_line(linetype="solid", position=position_dodge(0.2)) + theme_bw()+
-  theme(plot.margin =  margin(.5, .5, .5, 0, "cm"),axis.line = element_line(colour = "black"), legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5))+
-  labs(x ="", y = "", title="Middle") +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), alpha=0.6, width=.5, position=position_dodge(0.2))+ 
-  scale_y_continuous(name="", limits=c(0.000, 0.043))+annotate("text", x=c(1,2,3), y=c(0.041, 0.041, 0.041), label=c("", ""," "), size=12) + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
-
-Mid
-
-dev.off()
-
-####################--------------------------------------------------------------
-#BASE SHELL THICKNESS
-####################--------------------------------------------------------------
-#jpeg("linesbaseSE.jpg",height=550*4,width=650*4,res=100*4)
-
-Base<-ggplot(ShellTreatC, aes(x=Timepoint, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
-  geom_line(linetype="solid", position=position_dodge(0.2)) + theme_bw()+
-  theme(plot.margin =  margin(.5, .5, .5, 0, "cm"),axis.line = element_line(colour = "black"), legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5))+
-  labs(x ="", y = "", title="Base") +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), alpha=0.6, width=.5, position=position_dodge(0.2))+ 
-  scale_y_continuous(name="", limits=c(0.000, 0.043))+annotate("text", x=c(1,2,3), y=c(0.041, 0.041, 0.041), label=c("", ""," "), size=12) + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
-
-Base
-
-dev.off()
+Thickness
 
 ####################--------------------------------------------------------------
 #Full Shell Thickness Plot - Figure 2
@@ -339,7 +285,6 @@ figure.Thickness<-annotate_figure(figure.Thickness, bottom = text_grob("Time Of 
 quartz()
 #pdf("Thickness.pdf",height=5,width=14)
 #jpeg("Thickness.jpg",height=550*4,width=1250*4,res=100*5)
-
 
 figure.Thickness
 
@@ -358,117 +303,115 @@ setwd("/Users/racinerangel/Desktop/Climate Manipulations/Shell analyses")
 ####################--------------------------------------------------------------
 Muss_Str <- read.csv("ShellStrength_CL.csv")
 
-Muss_Str<- Muss_Str %>% filter(Pool!="21") #Removing Pool 21 from analyses
-
 #DO NOT FORGET***************Reorder treatments
 Muss_Str$Treatment<-factor(Muss_Str$Treatment, levels = c("Control","CO2","Heat", "Both"), labels = c("Unmanipulated", "CO2 Added", "Warmed", "CO2 Added + Warmed"))
 
 Muss_Str$Month<-factor(Muss_Str$Month, levels = c("March", "July", "September"), labels = c("March", "July", "September"))
 
-
-####################--------------------------------------------------------------
-#SHELL STRENGTH - FIGURE 
-####################--------------------------------------------------------------
-Str<-ggplot(Strength.avg, aes(x=Month, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(width=0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                     "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) + geom_line(linetype="solid", position=position_dodge(width=0.2))+theme_bw()+
-  theme(plot.margin =  margin(0.5, 0.5, 0.5, 0.5, "cm"), legend.position = "right",
+Str<-Muss_Str%>%
+  ggplot(aes(x=Month, y=Strength.Stand, fill=Treatment, col=Treatment)) + labs(y="Strength") +
+  geom_boxplot(position=position_dodge(0.85), width=0.75)+ ylim(0.0,4.0) + geom_point(position=position_jitterdodge(jitter.width=0, dodge.width = 0.85), size=3, pch=21, show.legend = F) +
+  scale_fill_manual(name="Treatment", values=c("white","gray47", "white", "firebrick"), 
+                    labels=c("Unmanipulated",
+                             "CO2 Added" = bquote(CO[2]~"Added"),
+                             "Warmed",
+                             "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) +
+  scale_color_manual(name="Treatment", values=c("gray47", "black", "firebrick", "black"),
+                     labels=c("Unmanipulated",
+                              "CO2 Added" = bquote(CO[2]~"Added"),
+                              "Warmed",
+                              "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
+  theme_bw() +
+  theme(plot.margin =  margin(.5, .5, .5, .5, "cm"),
         axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5)) +
-  labs(x ="Time Of Exposure (Months)", y = "Average Standardized Shell Strength (N)")+ geom_errorbar(aes(ymin=mean-sd, 
-                                                                                  ymax=mean+sd), alpha=0.6, width=.2, position=position_dodge(0.2)) + scale_y_continuous(name="Average Standardized Shell Strength (N)", limits=c(0.000, 3.50)) + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70") + scale_x_discrete(breaks=c("March","July","September"), labels=c("0","3", "6"))
+        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16)) + scale_x_discrete(breaks=c("0","3","September"), labels=c("0","3","6")) +
+  labs(x ="Time Of Exposure (Months)", y = "Standardized Maximum Force (N)") + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
+
+ggsave("Strength.Stand.pdf",height=18, width=24, units = c("cm"), dpi=1200, useDingbats=FALSE)
+ggsave("Stand_Str.svg", Str, device="svg")
 
 Str
 
-ggsave("Strength_Line.svg", Str, device="svg")
-ggsave("Strength.Line.pdf",height=16, width=26, units = c("cm"), dpi=1200, useDingbats=FALSE)
-
-
 
 ####################--------------------------------------------------------------
-#Shell Corrosion Data
+#Shell Corrosion Figure - 4
 ####################--------------------------------------------------------------
 setwd("/Users/racinerangel/Desktop/Climate Manipulations/Shell Analyses")
 #----------------------------------------------------------------------------
 #SHELL CORROSION ANALYSIS---------------------------------------------------
 ShellInner<-read.csv("Shell_Corrosion_Inner.csv")
 ShellOuter<-read.csv("Shell_Corrosion_Outer.csv")
-InnerCorr.avg<- read.csv("MS_AvgShellCorr_Inner_update.csv")
-OuterCorr.avg<- read.csv("MS_AvgShellCorr_Outer_update.csv")
-####################--------------------------------------------------------------
-InnerCorr.avg$Treatment<-factor(InnerCorr.avg$Treatment, levels = c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed"), labels=c("Unmanipulated", "CO2 Added","Warmed", "CO2 Added + Warmed"))
 
-OuterCorr.avg$Treatment<-factor(OuterCorr.avg$Treatment, levels = c("Control", "CO2","Heat", "Both"), labels=c("Unmanipulated", "CO2 Added", "Warmed", "CO2 Added + Warmed"))
+ShellInner$Treatment<-factor(ShellInner$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added", "Warmed", "CO2 Added + Warmed"))
 
+ShellInner$Timepoint<-factor(ShellInner$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
+
+ShellOuter$Treatment<-factor(ShellOuter$Treatment, levels = c("Control", "CO2", "Heat", "Both"), labels=c("Unmanipulated", "CO2 Added", "Warmed", "CO2 Added + Warmed"))
+
+ShellOuter$Timepoint<-factor(ShellOuter$Timepoint, levels = c("0", "3", "6"), labels = c("0", "3", "6"))
 
 ####################--------------------------------------------------------------
-#INNER SHELL CORROSION GEOMPOINT
+#INNER SHELL CORROSION BOXPLOT
 ####################--------------------------------------------------------------
-Inner<-InnerCorr.avg%>%
-  mutate(Month= fct_relevel(Month, "March", "July","September"))%>%
-  ggplot(aes(x=Month, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                     "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
-  geom_line(linetype="solid", position=position_dodge(0.2)) + theme_bw()+
-  theme(plot.margin =  margin(.5, .5, .5, 0.5, "cm"),axis.line = element_line(colour = "black"), legend.position = "right",
+Inner<-ShellInner%>%
+  ggplot(aes(x=Timepoint, y=Per_Corroded, fill=Treatment, col=Treatment)) + labs(y="") +
+  geom_boxplot(position=position_dodge(1.0), width=0.75)+ ylim(-3,103) + geom_point(position=position_jitterdodge(jitter.width= 0.28, jitter.height = 0.8, dodge.width = 1.0),size=3, pch=21, show.legend = F) +
+  scale_fill_manual(name="Treatment", values=c("white","gray47", "white", "firebrick"), 
+                    labels=c("Unmanipulated",
+                             "CO2 Added" = bquote(CO[2]~"Added"),
+                             "Warmed",
+                             "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) +
+  scale_color_manual(name="Treatment", values=c("gray47", "black", "firebrick", "black"),
+                     labels=c("Unmanipulated",
+                              "CO2 Added" = bquote(CO[2]~"Added"),
+                              "Warmed",
+                              "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
+  theme_bw() +
+  theme(plot.margin =  margin(.5, .5, .5, .5, "cm"),
+        axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5))+
-  labs(x ="", y = "Shell Corrosion (%)", title="") +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), alpha=0.6, width=.5, position=position_dodge(0.2))+ geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")+ scale_x_discrete(breaks=c("March","July","September"), labels=c("0","3", "6")) +scale_y_continuous(name="Shell Corrosion (%)", limits = c(-15, 120), breaks = seq(0, 120, by = 20))
+        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16)) + scale_x_discrete(breaks=c("0","3","6"), labels=c("0","3","6")) + 
+  labs(x ="", y = "Shell Corrosion (%)") + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
+
+Inner
 
 
 Inner
 
 
-####################--------------------------------------------------------------
-#OUTERSHELL CORROSION GEOMPOINT
-####################--------------------------------------------------------------
-
-
-Outer<-OuterCorr.avg%>%
-  mutate(Month= fct_relevel(Month, "March", "July","September"))%>%
-  ggplot(aes(x=Month, y=mean, group=Treatment)) +
-  geom_point(aes(shape=Treatment, color=Treatment), size=4.5, stroke=1.8, position=position_dodge(0.2))+
-  scale_shape_manual(values=c(1, 16, 1, 16), labels=c("Unmanipulated",
-                                                      "CO2 Added" = bquote(CO[2]~"Added"),
-                                                      "Warmed",
-                                                      "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+  
-  scale_color_manual(values=c("gray47", "gray47","firebrick", "firebrick"), labels=c("Unmanipulated",
-                                                                                     "CO2 Added" = bquote(CO[2]~"Added"),
-                                                                                     "Warmed",
-                                                                                     "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
-  geom_line(linetype="solid", position=position_dodge(0.2)) + theme_bw()+
-  theme(plot.margin =  margin(.5, .5, 0.5, 0.5, "cm"),axis.line = element_line(colour = "black"), legend.position = "right",
+Outer<-ShellOuter%>%
+  ggplot(aes(x=Timepoint, y=Per_Corroded, fill=Treatment, col=Treatment)) + labs(y="") +
+  geom_boxplot(position=position_dodge(0.85), width=0.75)+ ylim(-3,100) + geom_point(position=position_jitterdodge(jitter.width=0.2, dodge.width = 1.0),size=3, pch=21, show.legend = F) +
+  scale_fill_manual(name="Treatment", values=c("white","gray47", "white", "firebrick"), 
+                    labels=c("Unmanipulated",
+                             "CO2 Added" = bquote(CO[2]~"Added"),
+                             "Warmed",
+                             "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed"))) +
+  scale_color_manual(name="Treatment", values=c("gray47", "black", "firebrick", "black"),
+                     labels=c("Unmanipulated",
+                              "CO2 Added" = bquote(CO[2]~"Added"),
+                              "Warmed",
+                              "CO2 Added + Warmed" = bquote(CO[2]~"Added + Warmed")))+
+  theme_bw() +
+  theme(plot.margin =  margin(.5, .5, .5, .5, "cm"),
+        axis.line = element_line(colour = "black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(), axis.text.x  = element_text(size=16), axis.text.y  = element_text(size=16),
-        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16), plot.title=element_text(size=16, hjust=0.5))+
-  labs(x ="", y = "", title="") +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), alpha=0.6, width=.5, position=position_dodge(0.2))+ geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")+ scale_x_discrete(breaks=c("March","July","September"), labels=c("0","3", "6")) +scale_y_continuous(name="Shell Corrosion (%)", limits = c(-15, 120), breaks = seq(0, 120, by = 20))
+        axis.title  = element_text(size=16), legend.title  = element_text(size=16), legend.text=element_text(size=16)) + scale_x_discrete(breaks=c("0","3","6"), labels=c("0","3","6")) + 
+  labs(x ="", y = "Shell Corrosion (%)") + geom_vline(xintercept=1.5, linetype="dashed", color = "gray70")
 
 Outer
+
+
 
 figure.InOut<-ggarrange(Outer, Inner, labels = c("A", "B"),
                         common.legend = TRUE, legend = "right", font.label = list(size=20), ncol=1, nrow=2)
@@ -478,12 +421,14 @@ figure.InOut<-annotate_figure(figure.InOut, bottom = text_grob("Time Of Exposure
 
 
 pdf("ShellCorrosion.pdf",height=14,width=10,)
-ggsave("ShellCorrosionline.pdf",height=14, width=10, dpi=900, device = cairo_pdf)
-ggsave("ShellCorrosionline.svg", figure.InOut, device="svg")
+ggsave("ShellCorrosion-Updated.svg", figure.InOut, device="svg")
 
+quartz()
 figure.InOut
 
 dev.off()
+
+
 
 
 ####################--------------------------------------------------------------
